@@ -43,6 +43,7 @@ import java.util.Set;
 import com.healthmarketscience.jackcess.Column;
 import com.healthmarketscience.jackcess.Database;
 import com.healthmarketscience.jackcess.Index;
+import com.healthmarketscience.jackcess.IndexData;
 import com.healthmarketscience.jackcess.Table;
 
 /**
@@ -64,6 +65,9 @@ public class AccessExporter {
         return "'" + identifier.replace("'", "''") + "'";
     }
 
+    private String snakeCaseName (final String name) {
+        return name.replace(" ", "_").toLowerCase();
+    }
 
     /**
      * Iterate over and create SQLite indeces for every index defined
@@ -89,12 +93,12 @@ public class AccessExporter {
      * @throws SQLException
      */
     private void createIndex(final Index index, final Connection jdbc) throws SQLException {
-        final List<Index.ColumnDescriptor> columns = index.getColumns();
+        final List<IndexData.ColumnDescriptor> columns = index.getColumns();
         final StringBuilder stmtBuilder = new StringBuilder();
         
         /* Create the statement */
-        final String tableName = index.getTable().getName();
-        final String indexName = tableName + "_" + index.getName();
+        final String tableName = snakeCaseName(index.getTable().getName());
+        final String indexName = snakeCaseName(tableName + "_" + index.getName());
         final String uniqueString = index.isUnique() ? "UNIQUE" : "";
 
         // stmtBuilder.append("CREATE "+ uniqueString + " INDEX " + escapeIdentifier(indexName));
@@ -104,10 +108,10 @@ public class AccessExporter {
 
         final int columnCount = columns.size();
         for (int i = 0; i < columnCount; i++){
-            final Index.ColumnDescriptor column = columns.get(i);
+            final IndexData.ColumnDescriptor column = columns.get(i);
 
             // stmtBuilder.append(escapeIdentifier(column.getName()));
-						stmtBuilder.append(column.getName());
+			stmtBuilder.append(snakeCaseName(column.getName()));
             stmtBuilder.append(" ");
             if (i + 1 < columnCount)
                 stmtBuilder.append(", ");
@@ -132,15 +136,16 @@ public class AccessExporter {
         final StringBuilder stmtBuilder = new StringBuilder();
 
         /* Create the statement */
-        // stmtBuilder.append("CREATE TABLE " + escapeIdentifier(table.getName()) + " (");
-				stmtBuilder.append("CREATE TABLE " + table.getName() + " (");
+        System.out.println(table.getName());
+        stmtBuilder.append("CREATE TABLE " + snakeCaseName(table.getName()) + " (");
+		//stmtBuilder.append("CREATE TABLE " + table.getName() + " (");
         
         final int columnCount = columns.size();
         for (int i = 0; i < columnCount; i++) {
             final Column column = columns.get(i);
             
             // stmtBuilder.append(escapeIdentifier(column.getName()));
-						stmtBuilder.append(column.getName());
+			stmtBuilder.append("\"" + snakeCaseName(column.getName()) + "\"");
             stmtBuilder.append(" ");
             switch (column.getType()) {
                 /* Blob */
@@ -192,7 +197,7 @@ public class AccessExporter {
         stmtBuilder.append(")");
         
         /* Execute it */
-				System.out.println(stmtBuilder.toString());
+		System.out.println(stmtBuilder.toString());
         final Statement stmt = jdbc.createStatement();
         stmt.execute(stmtBuilder.toString());
     }
@@ -224,7 +229,7 @@ public class AccessExporter {
         
         /* Build the INSERT statement (in two pieces simultaneously) */
         // stmtBuilder.append("INSERT INTO " + escapeIdentifier(table.getName()) + " (");
-				stmtBuilder.append("INSERT INTO " + table.getName() + " (");
+				stmtBuilder.append("INSERT INTO " + snakeCaseName(table.getName()) + " (");
         valueStmtBuilder.append("(");
         
         for (int i = 0; i < columnCount; i++) {
@@ -232,7 +237,7 @@ public class AccessExporter {
 
             /* The column name and the VALUE binding */
             // stmtBuilder.append(escapeIdentifier(column.getName()));
-						stmtBuilder.append(column.getName());
+						stmtBuilder.append("\"" + snakeCaseName(column.getName()) + "\"");
             valueStmtBuilder.append("?");
             
             if (i + 1 < columnCount) {
