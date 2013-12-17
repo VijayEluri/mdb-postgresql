@@ -23,9 +23,9 @@
         <pathelement location="${lib.dir}/postgresql-8.3-604.jdbc3.jar"/>
 
         <!-- Jackcess -->
-        <pathelement location="${lib.dir}/commons-lang-2.4.jar"/>
+        <pathelement location="${lib.dir}/commons-lang-2.6.jar"/>
         <pathelement location="${lib.dir}/commons-logging-1.1.1.jar"/>
-        <pathelement location="${lib.dir}/jackcess-1.1.14.jar"/>
+        <pathelement location="${lib.dir}/jackcess-1.2.8.jar"/>
 
         <!-- JUnit -->
         <pathelement location="${lib.dir}/junit-4.4.jar"/>
